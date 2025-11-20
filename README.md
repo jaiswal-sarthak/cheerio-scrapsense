@@ -9,7 +9,7 @@
 
 ## 🚀 Live Demo
 
-**👉 [Try it now: https://scrape-sense-one.vercel.app](https://scrape-sense-one.vercel.app)**
+**👉 [Try it now: https://cheerio-scrapsense.onrender.com](https://cheerio-scrapsense.onrender.com)**
 
 ---
 
