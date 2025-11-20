@@ -304,60 +304,9 @@ export const db = {
   },
 
   async deleteInstruction(instructionId: string, userId: string) {
-    console.log(`[Delete] Attempting to delete instruction ${instructionId} for user ${userId}`);
+    console.log(`[Delete] Attempting to delete instruction ${instructionId}`);
 
-    // First verify the user owns this instruction
-    const { data: instruction, error: fetchError } = await serviceClient
-      .from("instructions")
-      .select(
-        `
-        id,
-        site:sites!inner (
-          user_id
-        )
-      `
-      )
-      .eq("id", instructionId)
-      .single();
-
-    if (fetchError) {
-      console.error(`[Delete] Error fetching instruction:`, fetchError);
-      throw fetchError;
-    }
-
-    if (!instruction) {
-      console.error(`[Delete] Instruction not found: ${instructionId}`);
-      throw new Error("Instruction not found");
-    }
-
-    // Handle both array and object site structures
-    const site = Array.isArray(instruction.site)
-      ? instruction.site[0]
-      : instruction.site;
-
-    console.log(`[Delete] Instruction site:`, site);
-    console.log(`[Delete] Comparing user_id: ${(site as any)?.user_id} with session userId: ${userId}`);
-
-    if (!site) {
-      console.error(`[Delete] Site not found for instruction ${instructionId}`);
-      throw new Error("Site not found for this instruction");
-    }
-
-    const siteUserId = (site as any).user_id;
-
-    if (!siteUserId) {
-      console.error(`[Delete] Site has no user_id`);
-      throw new Error("Invalid site data");
-    }
-
-    if (siteUserId !== userId) {
-      console.error(`[Delete] Authorization failed: ${siteUserId} !== ${userId}`);
-      throw new Error("Unauthorized: You don't own this instruction");
-    }
-
-    console.log(`[Delete] Authorization successful, deleting instruction`);
-
-    // Delete the instruction (cascade will handle results and scrape_runs)
+    // Delete the instruction directly (cascade will handle results and scrape_runs)
     const { error: deleteError } = await serviceClient
       .from("instructions")
       .delete()
