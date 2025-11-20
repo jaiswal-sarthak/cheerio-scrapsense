@@ -55,15 +55,20 @@ export const runScrapeCheerio = async (
             const metadata: Record<string, unknown> = {};
 
             for (const selector of schema.selectors) {
-                if (selector.selector !== primarySelector) {
-                    const nested = $node.find(selector.selector).first();
-                    metadata[selector.field] = sanitizeHtml(
-                        selector.attribute ? nested.attr(selector.attribute) ?? '' : nested.text() ?? ''
-                    ).trim();
-                } else {
-                    metadata[selector.field] = sanitizeHtml(
-                        selector.attribute ? $node.attr(selector.attribute) ?? '' : $node.text() ?? ''
-                    ).trim();
+                try {
+                    if (selector.selector !== primarySelector) {
+                        const nested = $node.find(selector.selector).first();
+                        metadata[selector.field] = sanitizeHtml(
+                            selector.attribute ? nested.attr(selector.attribute) ?? '' : nested.text() ?? ''
+                        ).trim();
+                    } else {
+                        metadata[selector.field] = sanitizeHtml(
+                            selector.attribute ? $node.attr(selector.attribute) ?? '' : $node.text() ?? ''
+                        ).trim();
+                    }
+                } catch (selectorError) {
+                    console.warn(`[Cheerio Scraper] Invalid selector "${selector.selector}":`, selectorError);
+                    metadata[selector.field] = '';
                 }
             }
 

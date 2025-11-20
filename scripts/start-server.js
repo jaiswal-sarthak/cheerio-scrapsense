@@ -5,8 +5,7 @@
  * Start server with Playwright check
  */
 
-const { spawn } = require('child_process');
-const path = require('path');
+const { spawn, execSync } = require('child_process');
 
 console.log('🚀 Starting ScrapeSense server...');
 

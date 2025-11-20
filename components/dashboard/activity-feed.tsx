@@ -11,6 +11,7 @@ interface Activity {
   timestamp: string;
   status?: "success" | "failed" | "pending";
   site?: string;
+  url?: string;
 }
 
 export const ActivityFeed = ({ tasks, changes }: { tasks: any[]; changes: any[] }) => {
@@ -23,12 +24,13 @@ export const ActivityFeed = ({ tasks, changes }: { tasks: any[]; changes: any[] 
       activities.push({
         id: `scrape-${task.id}`,
         type: task.last_run.run_status === "success" ? "scrape" : "error",
-        message: task.last_run.run_status === "success" 
-          ? `Scraped ${task.site?.title || "site"}` 
+        message: task.last_run.run_status === "success"
+          ? `Scraped ${task.site?.title || "site"}`
           : `Failed to scrape ${task.site?.title || "site"}`,
         timestamp: task.last_run.run_time,
         status: task.last_run.run_status === "success" ? "success" : "failed",
         site: task.site?.title || task.site?.url,
+        url: task.site?.url,
       });
     }
   });
@@ -41,6 +43,7 @@ export const ActivityFeed = ({ tasks, changes }: { tasks: any[]; changes: any[] 
       message: `Detected change in ${change.result?.title || "data"}`,
       timestamp: change.created_at,
       status: "success",
+      url: change.result?.url,
     });
   });
 
@@ -70,34 +73,50 @@ export const ActivityFeed = ({ tasks, changes }: { tasks: any[]; changes: any[] 
       <CardContent>
         <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
           {sortedActivities.length > 0 ? (
-            sortedActivities.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-start gap-3 p-2 rounded-lg bg-white/50 border border-white/30 dark:bg-slate-800/40 dark:border-white/10"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/70 dark:bg-slate-800/80">
-                  {getIcon(activity)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-900 dark:text-white line-clamp-1">
-                    {activity.message}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {formatDate(activity.timestamp)}
+            sortedActivities.map((activity) => {
+              const Content = (
+                <div
+                  className={`flex items-start gap-3 p-2 rounded-lg bg-white/50 border border-white/30 dark:bg-slate-800/40 dark:border-white/10 ${activity.url ? "hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors" : ""
+                    }`}
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/70 dark:bg-slate-800/80">
+                    {getIcon(activity)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-900 dark:text-white line-clamp-1">
+                      {activity.message}
                     </p>
-                    {activity.status && (
-                      <Badge
-                        variant={activity.status === "success" ? "success" : "danger"}
-                        className="text-xs"
-                      >
-                        {activity.status}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {formatDate(activity.timestamp)}
+                      </p>
+                      {activity.status && (
+                        <Badge
+                          variant={activity.status === "success" ? "success" : "danger"}
+                          className="text-xs"
+                        >
+                          {activity.status}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+
+              return activity.url ? (
+                <a
+                  key={activity.id}
+                  href={activity.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  {Content}
+                </a>
+              ) : (
+                <div key={activity.id}>{Content}</div>
+              );
+            })
           ) : (
             <p className="text-sm text-center text-slate-600 dark:text-slate-400 py-8">
               No activity yet. Create a task to get started!

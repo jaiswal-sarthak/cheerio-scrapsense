@@ -30,15 +30,17 @@ export default async function DashboardPage() {
     redirect("/signin");
   }
 
-  const [rawTasks, changes, results, settings] = await Promise.all([
+  const [rawTasks, changes, settings] = await Promise.all([
     db.getDashboardData(session.user.id).catch((error) => {
       console.error("Failed to load dashboard data", error);
       return [];
     }),
     db.getChangeLogs(session.user.id).catch(() => []),
-    db.getResults(session.user.id).catch(() => []),
     db.getSettings(session.user.id).catch(() => null),
   ]);
+
+  const instructionIds = rawTasks.map((t: any) => t.id);
+  const results = await db.getResults(session.user.id, instructionIds).catch(() => []);
 
   // Normalize tasks to handle Supabase array returns
   const tasks = rawTasks.map((t: any) => ({

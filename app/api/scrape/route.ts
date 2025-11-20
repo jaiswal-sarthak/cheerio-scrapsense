@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     ? allInstructions.filter((i: any) => i.id === taskId)
     : allInstructions;
 
-  const jobResults: Array<{ id: string; status: string }> = [];
+  const jobResults: Array<{ id: string; status: string; data?: any[] }> = [];
 
   for (const instruction of instructions) {
     // Extract site from array (Supabase returns it as array)
@@ -117,7 +117,11 @@ export async function POST(request: Request) {
         });
       }
 
-      jobResults.push({ id: instruction.id, status: "success" });
+      jobResults.push({
+        id: instruction.id,
+        status: "success",
+        data: body.returnResults ? scraped : undefined
+      });
     } catch (error) {
       console.error("Scrape failed", error);
       if (site?.id) {

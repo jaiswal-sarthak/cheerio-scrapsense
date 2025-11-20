@@ -6,6 +6,7 @@ interface SummaryPanelProps {
   summary?: string;
   results?: Array<{
     title: string;
+    url: string;
     ai_summary?: string | null;
     metadata?: Record<string, unknown> | null;
   }>;
@@ -59,7 +60,13 @@ export const SummaryPanel = ({ summary, results }: SummaryPanelProps) => {
                   <span>Top Trending</span>
                 </div>
                 {topItems.map((item, i) => (
-                  <div key={i} className="bg-white/50 rounded-lg p-2.5 border border-white/30 dark:bg-slate-800/40 dark:border-white/10">
+                  <a
+                    key={i}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block bg-white/50 rounded-lg p-2.5 border border-white/30 dark:bg-slate-800/40 dark:border-white/10 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors"
+                  >
                     <p className="text-sm font-medium line-clamp-1 text-slate-900 dark:text-white">{item.title}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="text-xs">
@@ -71,7 +78,7 @@ export const SummaryPanel = ({ summary, results }: SummaryPanelProps) => {
                         </span>
                       ) : null}
                     </div>
-                  </div>
+                  </a>
                 ))}
               </div>
             )}

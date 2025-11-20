@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { createClient } from "@supabase/supabase-js";
 import {
   InstructionPayload,
@@ -53,30 +53,33 @@ export const db = {
     return data;
   },
 
-  async getResults(userId: string) {
-    console.log(`[Query] Fetching all results`);
+  async getResults(userId: string, instructionIds?: string[]) {
+    console.log(`[Query] Fetching results for user ${userId}`);
 
-    const { data, error } = await serviceClient
+    let query = serviceClient
       .from("results")
       .select(`
-                id,
-                title,
-                description,
-                url,
-                metadata,
-                created_at,
-                instruction:instructions!inner (
-                    id,
-                    instruction_text,
-                    site:sites!inner (
-                        id,
-                        url,
-                        title
-                    )
-                )
-            `)
+              id,
+              title,
+              description,
+              url,
+              metadata,
+              created_at,
+              instruction_id,
+              ai_summary
+          `)
       .order("created_at", { ascending: false })
       .limit(200);
+
+    if (instructionIds && instructionIds.length > 0) {
+      query = query.in("instruction_id", instructionIds);
+    } else {
+      // Fallback to filtering by user via join if no IDs provided (though we should always provide IDs)
+      // But simpler to just return empty if no instructions found
+      return [];
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("[Query] Error fetching results:", error);
@@ -303,7 +306,7 @@ export const db = {
     if (error) throw error;
   },
 
-  async deleteInstruction(instructionId: string, userId: string) {
+  async deleteInstruction(instructionId: string) {
     console.log(`[Delete] Attempting to delete instruction ${instructionId}`);
 
     // Delete the instruction directly (cascade will handle results and scrape_runs)
@@ -318,5 +321,154 @@ export const db = {
     }
 
     console.log(`[Delete] Successfully deleted instruction ${instructionId}`);
+  },
+
+  // ============================================
+  // Pending Tasks (Task Validation Workflow)
+  // ============================================
+
+  async createPendingTask(payload: {
+    userId: string;
+    url: string;
+    title?: string;
+    instructionText: string;
+    scheduleIntervalHours: number;
+    aiGeneratedSchema?: Record<string, unknown>;
+    parsedInstruction?: Record<string, unknown>;
+    validationStatus: string;
+    validationErrors?: unknown[];
+    validationWarnings?: unknown[];
+    aiSuggestions?: unknown[];
+    testResults?: unknown[];
+    testResultCount?: number;
+  }) {
+    const { data, error } = await serviceClient
+      .from("pending_tasks")
+      .insert({
+        user_id: payload.userId,
+        url: payload.url,
+        title: payload.title ?? null,
+        instruction_text: payload.instructionText,
+        schedule_interval_hours: payload.scheduleIntervalHours,
+        ai_generated_schema: payload.aiGeneratedSchema ?? null,
+        parsed_instruction: payload.parsedInstruction ?? null,
+        validation_status: payload.validationStatus,
+        validation_errors: payload.validationErrors ?? [],
+        validation_warnings: payload.validationWarnings ?? [],
+        ai_suggestions: payload.aiSuggestions ?? [],
+        test_results: payload.testResults ?? [],
+        test_result_count: payload.testResultCount ?? 0,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getPendingTasks(userId: string) {
+    const { data, error } = await serviceClient
+      .from("pending_tasks")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getPendingTask(id: string, userId: string) {
+    const { data, error } = await serviceClient
+      .from("pending_tasks")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async updatePendingTask(
+    id: string,
+    userId: string,
+    payload: {
+      url?: string;
+      title?: string;
+      instructionText?: string;
+      scheduleIntervalHours?: number;
+      aiGeneratedSchema?: Record<string, unknown>;
+      parsedInstruction?: Record<string, unknown>;
+      validationStatus?: string;
+      validationErrors?: unknown[];
+      validationWarnings?: unknown[];
+      aiSuggestions?: unknown[];
+      testResults?: unknown[];
+      testResultCount?: number;
+    }
+  ) {
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (payload.url !== undefined) updateData.url = payload.url;
+    if (payload.title !== undefined) updateData.title = payload.title;
+    if (payload.instructionText !== undefined) updateData.instruction_text = payload.instructionText;
+    if (payload.scheduleIntervalHours !== undefined) updateData.schedule_interval_hours = payload.scheduleIntervalHours;
+    if (payload.aiGeneratedSchema !== undefined) updateData.ai_generated_schema = payload.aiGeneratedSchema;
+    if (payload.parsedInstruction !== undefined) updateData.parsed_instruction = payload.parsedInstruction;
+    if (payload.validationStatus !== undefined) updateData.validation_status = payload.validationStatus;
+    if (payload.validationErrors !== undefined) updateData.validation_errors = payload.validationErrors;
+    if (payload.validationWarnings !== undefined) updateData.validation_warnings = payload.validationWarnings;
+    if (payload.aiSuggestions !== undefined) updateData.ai_suggestions = payload.aiSuggestions;
+    if (payload.testResults !== undefined) updateData.test_results = payload.testResults;
+    if (payload.testResultCount !== undefined) updateData.test_result_count = payload.testResultCount;
+
+    const { data, error } = await serviceClient
+      .from("pending_tasks")
+      .update(updateData)
+      .eq("id", id)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePendingTask(id: string, userId: string) {
+    const { error } = await serviceClient
+      .from("pending_tasks")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId);
+
+    if (error) throw error;
+  },
+
+  async approvePendingTask(id: string, userId: string) {
+    // Get the pending task
+    const pendingTask = await this.getPendingTask(id, userId);
+
+    // Create the site
+    const site = await this.upsertSite({
+      url: pendingTask.url,
+      title: pendingTask.title ?? undefined,
+      userId,
+    });
+
+    // Create the instruction
+    const instruction = await this.createInstruction({
+      siteId: site.id,
+      instructionText: pendingTask.instruction_text,
+      scheduleIntervalHours: pendingTask.schedule_interval_hours,
+      aiSchema: pendingTask.ai_generated_schema as Record<string, unknown>,
+      userId,
+    });
+
+    // Delete the pending task
+    await this.deletePendingTask(id, userId);
+
+    return instruction;
   },
 };

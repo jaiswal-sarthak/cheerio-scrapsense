@@ -41,7 +41,7 @@ export async function DELETE(request: Request) {
         }
 
         // Delete instruction (will cascade to results and scrape_runs)
-        await db.deleteInstruction(instructionId, userId);
+        await db.deleteInstruction(instructionId);
 
         console.log(`[API Delete] Successfully deleted instruction ${instructionId}`);
         return NextResponse.json({ success: true, message: "Instruction deleted successfully" });

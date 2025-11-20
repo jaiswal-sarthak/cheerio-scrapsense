@@ -29,8 +29,7 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
   useEffect(() => {
     if (!open) return;
     onClose();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, onClose, open]);
 
   return (
     <div
@@ -61,13 +60,13 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
               AI Monitor
             </span>
           </div>
-        <button
-          onClick={onClose}
+          <button
+            onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/50 bg-white/60 text-slate-500 shadow-sm transition hover:bg-white/80 dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:hover:bg-slate-800/60"
-          aria-label="Close navigation"
-        >
-          <X className="h-4 w-4" />
-        </button>
+            aria-label="Close navigation"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
         <nav className="flex flex-1 flex-col gap-2 overflow-y-auto">
           {sidebarNavItems.map((item) => {

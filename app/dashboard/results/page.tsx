@@ -15,23 +15,24 @@ export default async function ResultsPage() {
     redirect("/signin");
   }
 
-  const [results, instructions] = await Promise.all([
-    db.getResults(session.user.id).catch((error) => {
-      console.error("Failed to load results", error);
-      return [];
-    }),
-    db.getDashboardData(session.user.id).catch((error) => {
-      console.error("Failed to load instructions", error);
-      return [];
-    }),
-  ]);
+  const instructions = await db.getDashboardData(session.user.id).catch((error) => {
+    console.error("Failed to load instructions", error);
+    return [];
+  });
+
+  const instructionIds = instructions.map((i: any) => i.id);
+
+  const results = await db.getResults(session.user.id, instructionIds).catch((error) => {
+    console.error("Failed to load results", error);
+    return [];
+  });
 
   // Group results by instruction
   const groupedResults = instructions.map((instruction) => {
     const site = Array.isArray(instruction.site) ? instruction.site[0] : instruction.site;
     const lastRun = Array.isArray(instruction.last_run) ? instruction.last_run[0] : instruction.last_run;
     const instructionResults = results.filter(
-      (r: any) => r.instruction?.id === instruction.id
+      (r: any) => r.instruction_id === instruction.id
     );
     return {
       instruction: { ...instruction, site, last_run: lastRun },
@@ -106,12 +107,12 @@ export default async function ResultsPage() {
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-              <CardTitle className="text-lg">
-                {group.instruction.site?.title || group.instruction.site?.url || "Unknown Site"}
-              </CardTitle>
+                  <CardTitle className="text-lg">
+                    {group.instruction.site?.title || group.instruction.site?.url || "Unknown Site"}
+                  </CardTitle>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                {group.instruction.instruction_text}
-              </p>
+                    {group.instruction.instruction_text}
+                  </p>
                 </div>
                 {lastRun && (
                   <div className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
@@ -131,7 +132,7 @@ export default async function ResultsPage() {
                 </div>
               )}
               {hasResults ? (
-              <ResultTable results={group.results} showHeader={false} />
+                <ResultTable results={group.results} showHeader={false} />
               ) : !isFailed && (
                 <p className="text-sm text-slate-600 dark:text-slate-400 text-center py-8">
                   No results yet. Run the scrape from the New Task page.

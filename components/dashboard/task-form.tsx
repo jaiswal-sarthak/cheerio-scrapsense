@@ -62,13 +62,12 @@ export const TaskForm = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset,
     setValue,
   } = useForm<CombinedForm>({
     resolver: zodResolver(
-      siteSchema.merge(instructionSchema.pick({ 
-        instructionText: true, 
-        scheduleIntervalHours: true 
+      siteSchema.merge(instructionSchema.pick({
+        instructionText: true,
+        scheduleIntervalHours: true
       }))
     ) as any,
     defaultValues: {
@@ -87,36 +86,29 @@ export const TaskForm = () => {
   const onSubmit = async (data: CombinedForm) => {
     setStatus(null);
     try {
-      const res = await fetch("/api/tasks", {
+      // Call validation API instead of directly creating task
+      const res = await fetch("/api/validate-task", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          site: { url: data.url, title: data.title },
-          instruction: {
-            instructionText: data.instructionText,
-            scheduleIntervalHours: data.scheduleIntervalHours,
-          },
+          url: data.url,
+          title: data.title,
+          instructionText: data.instructionText,
+          scheduleIntervalHours: data.scheduleIntervalHours,
         }),
       });
 
       if (!res.ok) {
         const body = await res.json();
-        throw new Error(body.message ?? "Unable to create task");
+        throw new Error(body.message ?? "Unable to validate task");
       }
 
-      setStatus({
-        type: "success",
-        message: "Task created successfully! You can now run it below.",
-      });
-      reset();
+      const result = await res.json();
 
-      // Refresh the page to show the new task
-      setTimeout(() => {
-        router.refresh();
-        setStatus(null);
-      }, 2000);
+      // Redirect to validation page
+      router.push(`/dashboard/tasks/validate/${result.pendingTaskId}`);
     } catch (error) {
       if (error instanceof Error) {
         setStatus({ type: "error", message: error.message });
@@ -173,61 +165,60 @@ export const TaskForm = () => {
       {/* Form */}
       <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
-        <Label htmlFor="url">Target URL</Label>
-        <Input id="url" placeholder="https://producthunt.com" {...register("url")} />
-        {errors.url && <p className="text-xs text-red-500">{errors.url.message}</p>}
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="title">Short label</Label>
-        <Input id="title" placeholder="Product Hunt — AI launches" {...register("title")} />
-        {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="instructionText">Instruction</Label>
-        <Textarea
-          id="instructionText"
-          rows={6}
-          placeholder='Example: "Fetch innovative projects with >50 upvotes, refresh every 24 hours".'
-          {...register("instructionText")}
-        />
-        {errors.instructionText && (
-          <p className="text-xs text-red-500">{errors.instructionText.message}</p>
-        )}
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="scheduleIntervalHours">Refresh cadence (hours)</Label>
-        <Input
-          type="number"
-          min={1}
-          max={168}
-          id="scheduleIntervalHours"
-          {...register("scheduleIntervalHours", { valueAsNumber: true })}
-        />
-        {errors.scheduleIntervalHours && (
-          <p className="text-xs text-red-500">{errors.scheduleIntervalHours.message}</p>
-        )}
-      </div>
-      <Button type="submit" className="w-full gap-2" disabled={isSubmitting}>
-        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-        Create task
-      </Button>
-      {status && (
-        <div
-          className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
-            status.type === "success"
+          <Label htmlFor="url">Target URL</Label>
+          <Input id="url" placeholder="https://producthunt.com" {...register("url")} />
+          {errors.url && <p className="text-xs text-red-500">{errors.url.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="title">Short label</Label>
+          <Input id="title" placeholder="Product Hunt — AI launches" {...register("title")} />
+          {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="instructionText">Instruction</Label>
+          <Textarea
+            id="instructionText"
+            rows={6}
+            placeholder='Example: "Fetch innovative projects with >50 upvotes, refresh every 24 hours".'
+            {...register("instructionText")}
+          />
+          {errors.instructionText && (
+            <p className="text-xs text-red-500">{errors.instructionText.message}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="scheduleIntervalHours">Refresh cadence (hours)</Label>
+          <Input
+            type="number"
+            min={1}
+            max={168}
+            id="scheduleIntervalHours"
+            {...register("scheduleIntervalHours", { valueAsNumber: true })}
+          />
+          {errors.scheduleIntervalHours && (
+            <p className="text-xs text-red-500">{errors.scheduleIntervalHours.message}</p>
+          )}
+        </div>
+        <Button type="submit" className="w-full gap-2" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Validating..." : "Create & Validate Task"}
+        </Button>
+        {status && (
+          <div
+            className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${status.type === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
               : "border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
-          }`}
-        >
-          {status.type === "success" && <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />}
-          <div>
-            <p className="font-medium">{status.message}</p>
-            {status.type === "success" && (
-              <p className="text-xs mt-1 opacity-80">Refreshing page...</p>
-            )}
+              }`}
+          >
+            {status.type === "success" && <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />}
+            <div>
+              <p className="font-medium">{status.message}</p>
+              {status.type === "success" && (
+                <p className="text-xs mt-1 opacity-80">Refreshing page...</p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </form>
     </div>
   );

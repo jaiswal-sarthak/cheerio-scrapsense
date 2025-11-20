@@ -19,7 +19,7 @@ export async function fetchHackerNews(limit: number = 10): Promise<SimpleFeed[]>
     // Get top stories
     const topStoriesRes = await fetch("https://hacker-news.firebaseio.com/v0/topstories.json");
     const topStories = await topStoriesRes.json();
-    
+
     // Fetch details for top N stories
     const stories = await Promise.all(
       topStories.slice(0, limit).map(async (id: number) => {
@@ -52,11 +52,17 @@ export async function fetchReddit(subreddit: string = "programming", limit: numb
   try {
     const res = await fetch(`https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; DataScraper/1.0)',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       },
     });
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn(`[Simple Sources] Reddit returned non-JSON response: ${contentType}`);
+      return [];
+    }
+
     const data = await res.json();
-    
+
     return data.data.children.map((child: any) => {
       const post = child.data;
       return {
@@ -85,24 +91,24 @@ export async function fetchRSS(feedUrl: string, limit: number = 10): Promise<Sim
   try {
     const res = await fetch(feedUrl);
     const xml = await res.text();
-    
+
     // Very basic RSS parsing (works for most feeds)
     const items: SimpleFeed[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     const matches = xml.matchAll(itemRegex);
-    
+
     for (const match of matches) {
       const itemXml = match[1];
       const titleMatch = itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/);
       const descMatch = itemXml.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>|<description>(.*?)<\/description>/);
       const linkMatch = itemXml.match(/<link>(.*?)<\/link>/);
       const pubDateMatch = itemXml.match(/<pubDate>(.*?)<\/pubDate>/);
-      
+
       const title = titleMatch ? (titleMatch[1] || titleMatch[2] || "Untitled") : "Untitled";
       const description = descMatch ? (descMatch[1] || descMatch[2] || "") : "";
       const url = linkMatch ? linkMatch[1] : feedUrl;
       const pubDate = pubDateMatch ? pubDateMatch[1] : new Date().toISOString();
-      
+
       items.push({
         title: title.replace(/<[^>]*>/g, ''), // Strip HTML tags
         description: description.replace(/<[^>]*>/g, '').slice(0, 200),
@@ -112,10 +118,10 @@ export async function fetchRSS(feedUrl: string, limit: number = 10): Promise<Sim
           source: 'RSS',
         },
       });
-      
+
       if (items.length >= limit) break;
     }
-    
+
     return items;
   } catch (error) {
     console.error("[Simple Sources] RSS fetch failed:", error);
@@ -128,7 +134,7 @@ export async function fetchRSS(feedUrl: string, limit: number = 10): Promise<Sim
  */
 export function detectSimpleSource(url: string): { type: string; handler: () => Promise<SimpleFeed[]> } | null {
   const urlLower = url.toLowerCase();
-  
+
   // HackerNews
   if (urlLower.includes('news.ycombinator.com') || urlLower.includes('hackernews')) {
     return {
@@ -136,17 +142,26 @@ export function detectSimpleSource(url: string): { type: string; handler: () => 
       handler: () => fetchHackerNews(20),
     };
   }
-  
+
   // Reddit
-  const redditMatch = urlLower.match(/reddit\.com\/r\/([^\/]+)/);
+  const redditMatch = urlLower.match(/reddit\.com\/r\/([^/?#]+)/);
   if (redditMatch) {
-    const subreddit = redditMatch[1];
+    let subreddit = redditMatch[1];
+    // Remove .json extension if present
+    if (subreddit.endsWith('.json')) {
+      subreddit = subreddit.replace('.json', '');
+    }
+    // Remove trailing slash
+    if (subreddit.endsWith('/')) {
+      subreddit = subreddit.slice(0, -1);
+    }
+
     return {
       type: `Reddit API (r/${subreddit})`,
       handler: () => fetchReddit(subreddit, 20),
     };
   }
-  
+
   // RSS feeds (common patterns)
   if (urlLower.includes('rss') || urlLower.includes('feed') || urlLower.endsWith('.xml')) {
     return {
@@ -154,7 +169,7 @@ export function detectSimpleSource(url: string): { type: string; handler: () => 
       handler: () => fetchRSS(url, 20),
     };
   }
-  
+
   return null;
 }
 
