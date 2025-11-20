@@ -54,61 +54,37 @@ export const db = {
   },
 
   async getResults(userId: string) {
-    console.log(`[Query] Fetching results for user ${userId}`);
+    console.log(`[Query] Fetching all results`);
 
-    // Fetch all results with instruction and site data
     const { data, error } = await serviceClient
       .from("results")
-      .select(
-        `
-        id,
-        title,
-        description,
-        url,
-        metadata,
-        ai_summary,
-        created_at,
-        instruction:instructions!inner (
-          id,
-          site:sites!inner (
-            id,
-            user_id,
-            url,
-            title
-          )
-        )
-      `,
-      )
+      .select(`
+                id,
+                title,
+                description,
+                url,
+                metadata,
+                created_at,
+                instruction:instructions!inner (
+                    id,
+                    instruction_text,
+                    site:sites!inner (
+                        id,
+                        url,
+                        title
+                    )
+                )
+            `)
       .order("created_at", { ascending: false })
-      .limit(200); // Fetch more, filter in code
+      .limit(200);
 
     if (error) {
-      console.error(`[Query] Error fetching results:`, error);
+      console.error("[Query] Error fetching results:", error);
       throw error;
     }
 
-    if (!data) {
-      console.log(`[Query] No results found`);
-      return [];
-    }
-
-    // Filter by user_id in application code
-    const filteredResults = data.filter((result: any) => {
-      const instruction = Array.isArray(result.instruction)
-        ? result.instruction[0]
-        : result.instruction;
-
-      if (!instruction) return false;
-
-      const site = Array.isArray(instruction.site)
-        ? instruction.site[0]
-        : instruction.site;
-
-      return site && site.user_id === userId;
-    }).slice(0, 50); // Limit to 50 after filtering
-
-    console.log(`[Query] Found ${filteredResults.length} results for user`);
-    return filteredResults;
+    console.log(`[Query] Found ${data?.length || 0} total results`);
+    return data || [];
   },
 
   async getChangeLogs(userId: string) {
