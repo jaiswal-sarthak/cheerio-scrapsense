@@ -1,9 +1,12 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
- * Start script for Render that ensures Playwright browsers are installed
+ * Start server with Playwright check
  */
-const { execSync } = require('child_process');
+
 const { spawn } = require('child_process');
+const path = require('path');
 
 console.log('🚀 Starting ScrapeSense server...');
 

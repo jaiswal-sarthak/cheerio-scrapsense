@@ -1,7 +1,9 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /**
- * Ensures Playwright browsers are installed
- * Run this during build to verify browsers are available
+ * Ensures Playwright browsers are installed before starting the server
  */
 const { execSync } = require('child_process');
 const path = require('path');
@@ -19,7 +21,7 @@ try {
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '0',
     },
   });
-  
+
   // Verify installation
   const playwrightPath = path.join(process.cwd(), 'node_modules', '@playwright', 'browser-paths');
   console.log('Playwright browsers installed successfully');

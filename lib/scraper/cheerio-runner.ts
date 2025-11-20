@@ -10,7 +10,7 @@ type Selector = {
 
 interface ExtractionSchema {
     selectors: Selector[];
-    filters?: string[] | Record<string, any>;
+    filters?: string[] | Record<string, unknown>;
 }
 
 interface ScrapeResult {
@@ -79,13 +79,13 @@ export const runScrapeCheerio = async (
                     ? schema.filters
                     : Object.entries(schema.filters).map(([key, val]) => ({ field: key, ...val }));
 
-                for (const filter of filters as any[]) {
-                    const field = filter.field || filter.key;
+                for (const filter of filters as Array<Record<string, unknown>>) {
+                    const field = (filter.field || filter.key) as string;
                     const value = metadata[field];
                     if (value === undefined) continue;
 
                     const numValue = parseFloat((value as string).replace(/[^0-9.-]/g, ''));
-                    const targetValue = filter.value;
+                    const targetValue = filter.value as number;
 
                     if (!isNaN(numValue) && typeof targetValue === 'number') {
                         if (filter.operator === '>' && !(numValue > targetValue)) pass = false;

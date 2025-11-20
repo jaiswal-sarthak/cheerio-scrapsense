@@ -80,50 +80,30 @@ export async function inspectPageCheerio(url: string): Promise<InspectionResult>
         // Find semantic tags
         const semanticSelectors = ['article', 'section', 'main', 'aside', 'nav', 'header', 'footer'];
         semanticSelectors.forEach(tag => {
-            const count = $(tag).length;
-            if (count > 0) {
-                patterns.semanticTags.push(`${tag} (${count})`);
-            }
-        });
-
-        // Find repeating patterns
-        const elementMap = new Map<string, number>();
-        $('*').each((_, el) => {
-            const className = $(el).attr('class');
-            if (className) {
-                const firstClass = className.split(' ')[0];
-                if (firstClass) {
-                    const selector = `${el.tagName.toLowerCase()}.${firstClass}`;
-                    elementMap.set(selector, (elementMap.get(selector) || 0) + 1);
-                }
-            }
-        });
-
-        patterns.repeatingSelectors = Array.from(elementMap.entries())
             .filter(([, count]) => count >= 3)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 20)
-            .map(([selector, count]) => `${selector} (${count})`);
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 20)
+                .map(([selector, count]) => `${selector} (${count})`);
 
-        // Get title
-        const title = $('title').text() || 'Untitled';
+            // Get title
+            const title = $('title').text() || 'Untitled';
 
-        // Create HTML snippet
-        const htmlSnippet = html.substring(0, 15000);
+            // Create HTML snippet
+            const htmlSnippet = html.substring(0, 15000);
 
-        console.log(`[Cheerio Inspector] Successfully inspected ${url}`);
+            console.log(`[Cheerio Inspector] Successfully inspected ${url}`);
 
-        return {
-            html,
-            htmlSnippet,
-            patterns,
-            title,
-        };
-    } catch (error) {
-        console.error(`[Cheerio Inspector] Error:`, error);
-        if (axios.isAxiosError(error)) {
-            throw new Error(`Failed to fetch page: ${error.message}`);
+            return {
+                html,
+                htmlSnippet,
+                patterns,
+                title,
+            };
+        } catch (error) {
+            console.error(`[Cheerio Inspector] Error:`, error);
+            if (axios.isAxiosError(error)) {
+                throw new Error(`Failed to fetch page: ${error.message}`);
+            }
+            throw error;
         }
-        throw error;
     }
-}
