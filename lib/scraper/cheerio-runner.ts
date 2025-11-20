@@ -10,7 +10,7 @@ type Selector = {
 
 interface ExtractionSchema {
     selectors: Selector[];
-    filters?: string[] | Record<string, unknown>;
+    filters?: Array<Record<string, unknown>>;
 }
 
 interface ScrapeResult {
@@ -20,10 +20,6 @@ interface ScrapeResult {
     metadata?: Record<string, unknown>;
 }
 
-/**
- * Lightweight scraper using axios and cheerio
- * No browser required - faster but may miss dynamic content
- */
 export const runScrapeCheerio = async (
     targetUrl: string,
     schema: ExtractionSchema
@@ -31,7 +27,6 @@ export const runScrapeCheerio = async (
     console.log(`[Cheerio Scraper] Scraping ${targetUrl}`);
 
     try {
-        // Fetch HTML
         const response = await axios.get(targetUrl, {
             headers: {
                 'User-Agent': process.env.SCRAPER_DEFAULT_USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -70,32 +65,6 @@ export const runScrapeCheerio = async (
                         selector.attribute ? $node.attr(selector.attribute) ?? '' : $node.text() ?? ''
                     ).trim();
                 }
-            }
-
-            // Apply filters
-            if (schema.filters) {
-                let pass = true;
-                const filters = Array.isArray(schema.filters)
-                    ? schema.filters
-                    : Object.entries(schema.filters).map(([key, val]) => ({ field: key, ...val }));
-
-                for (const filter of filters as Array<Record<string, unknown>>) {
-                    const field = (filter.field || filter.key) as string;
-                    const value = metadata[field];
-                    if (value === undefined) continue;
-
-                    const numValue = parseFloat((value as string).replace(/[^0-9.-]/g, ''));
-                    const targetValue = filter.value as number;
-
-                    if (!isNaN(numValue) && typeof targetValue === 'number') {
-                        if (filter.operator === '>' && !(numValue > targetValue)) pass = false;
-                        if (filter.operator === '<' && !(numValue < targetValue)) pass = false;
-                        if (filter.operator === '>=' && !(numValue >= targetValue)) pass = false;
-                        if (filter.operator === '<=' && !(numValue <= targetValue)) pass = false;
-                        if (filter.operator === '=' && !(numValue === targetValue)) pass = false;
-                    }
-                }
-                if (!pass) return;
             }
 
             const title =
