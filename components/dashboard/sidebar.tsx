@@ -24,12 +24,12 @@ export const Sidebar = ({ className, onNavigate }: SidebarProps) => {
   return (
     <aside
       className={cn(
-        "relative z-30 hidden md:flex min-h-screen w-64 flex-col border-r border-white/10 bg-white/60 px-3 py-5 text-sm text-slate-500 shadow-2xl shadow-slate-900/5 backdrop-blur-2xl transition dark:border-white/5 dark:bg-slate-900/40 dark:text-slate-300",
+        "fixed left-0 top-0 z-30 hidden md:flex h-screen w-64 flex-col border-r border-white/10 bg-white/60 px-3 py-5 text-sm text-slate-500 shadow-2xl shadow-slate-900/5 backdrop-blur-2xl transition dark:border-white/5 dark:bg-slate-900/40 dark:text-slate-300",
         className,
       )}
     >
-        <div className="flex h-9 w-9 items-center justify-center">
-          <Bot className="h-5 w-5 text-sky-500 dark:text-sky-300" />
+      <div className="flex h-9 w-9 items-center justify-center">
+        <Bot className="h-5 w-5 text-sky-500 dark:text-sky-300" />
       </div>
       <nav className="mt-8 flex flex-1 flex-col gap-2">
         {sidebarNavItems.map((item) => {
@@ -58,7 +58,7 @@ export const Sidebar = ({ className, onNavigate }: SidebarProps) => {
                 </span>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold">{item.label}</p>
+                    <p className="text-sm font-semibold">{item.label}</p>
                     {item.badge === "action" && (
                       <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-sky-500/20 text-sky-600 dark:text-sky-300">
                         NEW

@@ -15,10 +15,12 @@ import {
     Loader2,
     RefreshCw,
     Play,
+    Sliders,
 } from "lucide-react";
 import { ValidationSuggestions } from "./validation-suggestions";
 import { InlineTaskEditor } from "./inline-task-editor";
 import { TaskPreviewCard } from "./task-preview-card";
+import { ManualSelectorEditor } from "./manual-selector-editor";
 
 interface PendingTask {
     id: string;
@@ -41,6 +43,7 @@ interface PendingTask {
 export function TaskValidationView({ pendingTask }: { pendingTask: PendingTask }) {
     const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
+    const [isEditingSelectors, setIsEditingSelectors] = useState(false);
     const [isApproving, setIsApproving] = useState(false);
     const [isRejecting, setIsRejecting] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
@@ -258,7 +261,37 @@ export function TaskValidationView({ pendingTask }: { pendingTask: PendingTask }
                 </div>
             )}
 
-            {isEditing ? (
+            {isEditingSelectors ? (
+                <ManualSelectorEditor
+                    url={pendingTask.url}
+                    onSave={async (schema) => {
+                        try {
+                            // Save the manual schema and revalidate
+                            const response = await fetch("/api/revalidate-task", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    pendingTaskId: pendingTask.id,
+                                    manualSchema: schema,
+                                    schemaMode: "manual",
+                                }),
+                            });
+
+                            if (!response.ok) {
+                                throw new Error("Failed to save manual schema");
+                            }
+
+                            showMessage('success', '✓ Manual schema saved successfully!');
+                            setIsEditingSelectors(false);
+                            router.refresh();
+                        } catch (error) {
+                            console.error("Failed to save manual schema:", error);
+                            showMessage('error', '✗ Failed to save manual schema. Please try again.');
+                        }
+                    }}
+                    onCancel={() => setIsEditingSelectors(false)}
+                />
+            ) : isEditing ? (
                 <InlineTaskEditor
                     pendingTask={pendingTask}
                     onCancel={() => setIsEditing(false)}
@@ -413,6 +446,16 @@ export function TaskValidationView({ pendingTask }: { pendingTask: PendingTask }
                                     Regenerate Schema
                                 </>
                             )}
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsEditingSelectors(true)}
+                            disabled={isRejecting || isApproving || isRegenerating || isRunning}
+                            title="Manually edit CSS selectors"
+                        >
+                            <Sliders className="h-4 w-4 mr-2" />
+                            Modify Selectors
                         </Button>
 
                         <Button

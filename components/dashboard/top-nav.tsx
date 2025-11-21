@@ -101,30 +101,30 @@ const NotificationButton = () => {
 
 export const TopNav = ({ user, onToggleSidebar }: TopNavProps) => {
   return (
-    <header className="sticky top-0 z-20 border-b border-white/20 bg-white/80 py-4 md:py-5 text-slate-700 shadow-xl shadow-slate-900/5 backdrop-blur-2xl dark:border-white/5 dark:bg-slate-950/50 dark:text-slate-100">
+    <header className="sticky top-0 z-10 border-b border-white/20 bg-white/80 py-4 md:py-5 text-slate-700 shadow-xl shadow-slate-900/5 backdrop-blur-2xl dark:border-white/5 dark:bg-slate-950/50 dark:text-slate-100">
       <div className="mx-auto w-full max-w-6xl px-4 md:px-8">
         <div className="flex items-start justify-between gap-3 md:gap-4">
-      <button
-        onClick={onToggleSidebar}
+          <button
+            onClick={onToggleSidebar}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/60 bg-white/80 text-slate-700 shadow-sm shadow-slate-900/10 transition hover:border-slate-200 hover:text-slate-900 dark:border-white/10 dark:bg-slate-900/60 dark:text-white md:hidden"
-        aria-label="Open navigation"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
+            aria-label="Open navigation"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
           <div className="flex flex-1 min-w-0 flex-col">
             <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.5em] text-slate-500 dark:text-slate-400">
-                {getGreeting()}
-              </p>
+              {getGreeting()}
+            </p>
             <h2 className="text-base md:text-xl font-semibold text-slate-900 dark:text-white truncate">
-                Welcome back, {user.name ?? user.email ?? "operator"}
-              </h2>
+              Welcome back, {user.name ?? user.email ?? "operator"}
+            </h2>
             <p className="hidden sm:block text-sm text-slate-600 dark:text-slate-300">
-                Live scraping, schema regeneration, and change detection at a glance.
-              </p>
+              Live scraping, schema regeneration, and change detection at a glance.
+            </p>
           </div>
           <div className="flex shrink-0 items-start gap-2 md:gap-3">
             <div className="hidden sm:block">
-            <NotificationButton />
+              <NotificationButton />
             </div>
             <ThemeToggle />
             <Button

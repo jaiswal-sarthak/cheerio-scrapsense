@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Bot, LogOut, X } from "lucide-react";
@@ -16,6 +16,11 @@ interface MobileSidebarProps {
 
 export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
   const pathname = usePathname();
+  const prevPathnameRef = useRef(pathname);
+
+  useEffect(() => {
+    console.log('[MobileSidebar] Open state changed:', open);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -26,43 +31,48 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
     };
   }, [open]);
 
+  // Close sidebar when route changes (but not on initial mount)
   useEffect(() => {
-    if (!open) return;
-    onClose();
-  }, [pathname, onClose, open]);
+    if (open && prevPathnameRef.current !== pathname) {
+      console.log('[MobileSidebar] Route changed, closing sidebar');
+      onClose();
+    }
+    prevPathnameRef.current = pathname;
+  }, [pathname, open, onClose]);
 
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 w-full md:hidden",
+        "fixed inset-0 z-[60] w-full md:hidden",
         open ? "pointer-events-auto" : "pointer-events-none",
       )}
     >
       <div
         className={cn(
-          "absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300",
+          "absolute inset-0 bg-slate-900/80 backdrop-blur-md transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0",
         )}
         onClick={onClose}
       />
       <div
         className={cn(
-          "ml-auto flex h-full w-[20rem] max-w-[85vw] flex-col border-l border-white/10 bg-gradient-to-b from-white/95 via-white/90 to-white/95 p-4 text-slate-600 shadow-2xl shadow-slate-900/30 backdrop-blur-2xl transition-transform duration-300 dark:from-slate-900/95 dark:via-slate-900/90 dark:to-slate-900/95 dark:text-slate-200",
+          "ml-auto flex h-full w-[20rem] max-w-[85vw] flex-col border-l-4 border-l-red-500 border-slate-200 bg-white p-4 text-slate-900 shadow-2xl transition-transform duration-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100",
           open ? "translate-x-0" : "translate-x-full",
         )}
+        style={{ border: open ? '4px solid red' : undefined }}
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center">
-              <Bot className="h-5 w-5 text-sky-500 dark:text-sky-300" />
+              <Bot className="h-5 w-5 text-sky-500 dark:text-sky-400" />
             </div>
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               AI Monitor
             </span>
           </div>
           <button
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/50 bg-white/60 text-slate-500 shadow-sm transition hover:bg-white/80 dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:hover:bg-slate-800/60"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             aria-label="Close navigation"
           >
             <X className="h-4 w-4" />
@@ -78,23 +88,23 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium backdrop-blur-lg transition",
+                  "flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium transition",
                   active
-                    ? "border-sky-200/60 bg-gradient-to-r from-sky-50/70 via-white/80 to-white/40 text-sky-600 shadow-md dark:border-slate-700 dark:from-slate-800/80 dark:via-slate-900/60 dark:to-slate-900/20 dark:text-sky-200"
-                    : "border-white/20 text-slate-600 hover:border-white/50 hover:bg-white/40 dark:border-white/10 dark:text-slate-200 dark:hover:border-white/30 dark:hover:bg-slate-800/40",
+                    ? "border-sky-200 bg-sky-50 text-sky-700 shadow-md dark:border-sky-800 dark:bg-sky-950 dark:text-sky-200"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-sky-800 dark:hover:bg-sky-950",
                 )}
               >
                 <span className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/70 text-slate-700 dark:bg-slate-800/80 dark:text-slate-100",
-                  active && "bg-sky-500/10 text-sky-500 dark:bg-sky-400/20 dark:text-sky-200"
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200",
+                  active && "bg-sky-100 text-sky-600 dark:bg-sky-900 dark:text-sky-300"
                 )}>
                   <Icon className="h-4 w-4" />
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="truncate">{item.label}</p>
+                    <p className="truncate font-semibold">{item.label}</p>
                     {item.badge === "action" && (
-                      <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-sky-500/20 text-sky-600 dark:text-sky-300">
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-sky-500/20 text-sky-600 dark:bg-sky-500/30 dark:text-sky-300">
                         NEW
                       </span>
                     )}
@@ -105,11 +115,11 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
             );
           })}
         </nav>
-        <div className="mt-4 space-y-2 border-t border-white/20 pt-4 dark:border-white/10">
+        <div className="mt-4 space-y-2 border-t border-slate-200 pt-4 dark:border-slate-700">
           <Button
             variant="outline"
             size="sm"
-            className="w-full rounded-xl border-white/40 bg-white/60 text-slate-700 hover:bg-white/80 dark:border-white/10 dark:bg-slate-800/60 dark:text-white dark:hover:bg-slate-800/80"
+            className="w-full rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             onClick={() => signOut({ callbackUrl: "/" })}
           >
             <LogOut className="h-4 w-4 mr-2" />

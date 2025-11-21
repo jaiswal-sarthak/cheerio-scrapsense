@@ -57,11 +57,27 @@ export const runScrapeCheerio = async (
             for (const selector of schema.selectors) {
                 try {
                     if (selector.selector !== primarySelector) {
-                        const nested = $node.find(selector.selector).first();
-                        metadata[selector.field] = sanitizeHtml(
-                            selector.attribute ? nested.attr(selector.attribute) ?? '' : nested.text() ?? ''
-                        ).trim();
+                        // CRITICAL: Use .find() to search WITHIN the current node only
+                        // This prevents selecting the same element from the first container every time
+                        let nested = $node.find(selector.selector).first();
+
+                        // If nothing found with .find(), try direct match on the node itself
+                        if (nested.length === 0 && $node.is(selector.selector)) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            nested = $node as any;
+                        }
+
+                        if (nested.length > 0) {
+                            metadata[selector.field] = sanitizeHtml(
+                                selector.attribute ? nested.attr(selector.attribute) ?? '' : nested.text() ?? ''
+                            ).trim();
+                        } else {
+                            // Fallback: log warning and set empty
+                            console.warn(`[Cheerio Scraper] Selector "${selector.selector}" not found within container`);
+                            metadata[selector.field] = '';
+                        }
                     } else {
+                        // This is the container itself
                         metadata[selector.field] = sanitizeHtml(
                             selector.attribute ? $node.attr(selector.attribute) ?? '' : $node.text() ?? ''
                         ).trim();

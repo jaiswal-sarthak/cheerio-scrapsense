@@ -5,12 +5,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader2, Newspaper, MessageSquare, Code } from "lucide-react";
+import { CheckCircle2, Loader2, Newspaper, MessageSquare, Code, Wand2, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { siteSchema, instructionSchema } from "@/lib/validators/task";
+import { ManualSelectorEditor } from "@/components/dashboard/manual-selector-editor";
 
 type CombinedForm = {
   url: string;
@@ -18,6 +20,8 @@ type CombinedForm = {
   instructionText: string;
   scheduleIntervalHours: number;
 };
+
+type SchemaMode = "ai" | "manual";
 
 const PRESET_SITES = [
   {
@@ -58,11 +62,14 @@ const PRESET_SITES = [
 export const TaskForm = () => {
   const router = useRouter();
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [schemaMode, setSchemaMode] = useState<SchemaMode>("ai");
+  const [manualSchema, setManualSchema] = useState<any>(null);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    watch,
   } = useForm<CombinedForm>({
     resolver: zodResolver(
       siteSchema.merge(instructionSchema.pick({
@@ -75,6 +82,8 @@ export const TaskForm = () => {
     },
   });
 
+  const currentUrl = watch("url");
+
   const handlePresetClick = (preset: typeof PRESET_SITES[0]) => {
     setValue("url", preset.config.url);
     setValue("title", preset.config.title);
@@ -86,7 +95,7 @@ export const TaskForm = () => {
   const onSubmit = async (data: CombinedForm) => {
     setStatus(null);
     try {
-      // Call validation API instead of directly creating task
+      // Call validation API
       const res = await fetch("/api/validate-task", {
         method: "POST",
         headers: {
@@ -97,6 +106,8 @@ export const TaskForm = () => {
           title: data.title,
           instructionText: data.instructionText,
           scheduleIntervalHours: data.scheduleIntervalHours,
+          schemaMode,
+          manualSchema: schemaMode === "manual" ? manualSchema : undefined,
         }),
       });
 
@@ -150,6 +161,51 @@ export const TaskForm = () => {
         </div>
       </div>
 
+      {/* Schema Mode Toggle */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">Schema Generation Mode</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setSchemaMode("ai")}
+            className={`flex items-center gap-3 p-4 rounded-xl border transition ${schemaMode === "ai"
+                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                : "border-white/30 bg-white/50 hover:bg-white/70 dark:border-white/10 dark:bg-slate-800/40 dark:hover:bg-slate-800/60"
+              }`}
+          >
+            <Wand2 className={`h-5 w-5 ${schemaMode === "ai" ? "text-blue-600" : "text-slate-600 dark:text-slate-400"}`} />
+            <div className="text-left">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                AI Mode
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Automatic (recommended)
+              </p>
+            </div>
+            {schemaMode === "ai" && <Badge className="ml-auto">Active</Badge>}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSchemaMode("manual")}
+            className={`flex items-center gap-3 p-4 rounded-xl border transition ${schemaMode === "manual"
+                ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                : "border-white/30 bg-white/50 hover:bg-white/70 dark:border-white/10 dark:bg-slate-800/40 dark:hover:bg-slate-800/60"
+              }`}
+          >
+            <Settings2 className={`h-5 w-5 ${schemaMode === "manual" ? "text-purple-600" : "text-slate-600 dark:text-slate-400"}`} />
+            <div className="text-left">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                Manual Mode
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Custom selectors
+              </p>
+            </div>
+            {schemaMode === "manual" && <Badge className="ml-auto">Active</Badge>}
+          </button>
+        </div>
+      </div>
+
       {/* Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -157,7 +213,7 @@ export const TaskForm = () => {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-white/80 px-2 text-slate-500 dark:bg-slate-900/80 dark:text-slate-400">
-            Or enter custom site
+            {schemaMode === "ai" ? "Or enter custom site" : "Enter site details"}
           </span>
         </div>
       </div>
@@ -199,7 +255,20 @@ export const TaskForm = () => {
             <p className="text-xs text-red-500">{errors.scheduleIntervalHours.message}</p>
           )}
         </div>
-        <Button type="submit" className="w-full gap-2" disabled={isSubmitting}>
+
+        {/* Manual Selector Editor */}
+        {schemaMode === "manual" && currentUrl && (
+          <div className="space-y-2">
+            <Label>Define Selectors</Label>
+            <ManualSelectorEditor
+              url={currentUrl}
+              initialSchema={manualSchema}
+              onSave={(schema) => setManualSchema(schema)}
+            />
+          </div>
+        )}
+
+        <Button type="submit" className="w-full gap-2" disabled={isSubmitting || (schemaMode === "manual" && !manualSchema)}>
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {isSubmitting ? "Validating..." : "Create & Validate Task"}
         </Button>

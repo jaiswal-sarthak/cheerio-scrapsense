@@ -17,7 +17,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { url, title, instructionText, scheduleIntervalHours } = body;
+        const { url, title, instructionText, scheduleIntervalHours, schemaMode, manualSchema } = body;
 
         // Validate required fields
         if (!url || !instructionText) {
@@ -27,10 +27,25 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log(`[Validate Task] Starting validation for ${url}`);
+        console.log(`[Validate Task] Starting validation for ${url} (mode: ${schemaMode || 'ai'})`);
 
-        // Run validation
-        const validation = await validateTask(url, instructionText);
+        let validation;
+
+        if (schemaMode === "manual" && manualSchema) {
+            // Manual mode: validate user-provided selectors
+            console.log("[Validate Task] Using manual schema");
+
+            // Run validation with manual schema
+            validation = await validateTask(url, instructionText);
+
+            // Override AI-generated schema with manual schema
+            validation.schema = manualSchema;
+            (validation.parsedInstruction as any).schemaMode = "manual";
+        } else {
+            // AI mode: use automatic schema generation
+            console.log("[Validate Task] Using AI schema generation");
+            validation = await validateTask(url, instructionText);
+        }
 
         // Create pending task (use adapted URL if available)
         const pendingTask = await db.createPendingTask({
