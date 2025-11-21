@@ -9,7 +9,8 @@
 
 ## 🚀 Live Demo
 
-**👉 [Try it now: https://cheerio-scrapsense.onrender.com](https://cheerio-scrapsense.onrender.com)**
+**👉 [Render Demo: https://cheerio-scrapsense.onrender.com](https://cheerio-scrapsense.onrender.com)**
+**👉 [Vercel Demo: https://cheerio-scrapsense.vercel.app](https://cheerio-scrapsense.vercel.app)**
 
 ---
 
@@ -659,7 +660,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📮 Contact
 
-- **Live App**: [https://scrape-sense-one.vercel.app](https://scrape-sense-one.vercel.app)
+- **Live App (Vercel)**: [https://cheerio-scrapsense.vercel.app](https://cheerio-scrapsense.vercel.app)
+- **Live App (Render)**: [https://cheerio-scrapsense.onrender.com](https://cheerio-scrapsense.onrender.com)
 - **GitHub**: [@jaiswal-sarthak](https://github.com/jaiswal-sarthak)
 - **Email**: jsarthak135@gmail.com
 
