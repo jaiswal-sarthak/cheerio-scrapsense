@@ -34,6 +34,7 @@
 
 ### 🎯 Core Functionality
 - **AI-Powered Schema Generation** - No manual CSS selectors needed
+- **Manual Selector Editor** - Fine-tune schemas with AI suggestions & real-time validation
 - **Autonomous Scraping** - Scheduled runs with configurable intervals
 - **Multi-Provider AI Fallback** - OpenAI → Groq → Gemini
 - **Change Detection** - Track and log all data changes over time
@@ -45,6 +46,7 @@
 - **Success Rate Tracking** - Performance metrics
 - **Top Sites Analytics** - Most active monitoring targets
 - **Peak Activity Times** - Optimize scheduling based on patterns
+- **Scrollable Health Status** - Easy monitoring of all task statuses
 
 ### 📤 Export & Sharing
 - **Multi-format Export** - CSV, JSON, PDF
@@ -61,7 +63,9 @@
 ### 🚀 User Experience
 - **Quick Start Presets** - One-click task creation for popular sites
 - **Run Now Button** - Instant manual scraping
-- **Mobile Responsive** - Works perfectly on all devices
+- **Mobile Responsive** - Fixed sidebar & optimized mobile navigation
+- **Modern UI** - Clean interface with DM Sans typography
+- **Localized Times** - IST formatted timestamps for better readability
 - **Dark Mode** - Beautiful UI with theme switching
 - **Real-time Updates** - Live status and progress tracking
 
@@ -88,7 +92,7 @@
 - **Runtime**: Node.js
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: NextAuth.js
-- **Scraping**: Playwright
+- **Scraping**: Cheerio (Lightweight & Fast)
 - **HTML Parsing**: node-html-parser
 - **Sanitization**: sanitize-html
 
@@ -268,7 +272,8 @@ CRON_SIGNATURE_TOKEN=your-cron-secret
    - **Refresh Cadence**: How often to scrape (in hours)
 3. Click **Create Task**
 4. AI automatically generates the schema
-5. Click **Run** to test it
+5. **Optional**: Click "Modify Selectors" to fine-tune the schema manually
+6. Click **Run** to test it
 
 ### Managing Tasks
 
