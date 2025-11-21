@@ -580,7 +580,7 @@ LOG_LEVEL=verbose
 ### Getting Help
 
 1. Check [Troubleshooting docs](docs/TROUBLESHOOTING.md)
-2. Search [GitHub Issues](https://github.com/jaiswal-sarthak/ai-monitor/issues)
+2. Search [GitHub Issues](https://github.com/jaiswal-sarthak/cheerio-scrapsense/issues)
 3. Create a new issue with:
    - Error message
    - Steps to reproduce
@@ -686,6 +686,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Made with ❤️ using Next.js, AI, and Playwright
 
-[Report Bug](https://github.com/jaiswal-sarthak/ai-monitor/issues) · [Request Feature](https://github.com/jaiswal-sarthak/ai-monitor/issues) · [Documentation](https://github.com/jaiswal-sarthak/ai-monitor/wiki)
+[Report Bug](https://github.com/jaiswal-sarthak/cheerio-scrapsense/issues) · [Request Feature](https://github.com/jaiswal-sarthak/cheerio-scrapsense/issues) · [Documentation](https://github.com/jaiswal-sarthak/cheerio-scrapsense/wiki)
 
 </div>
