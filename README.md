@@ -580,7 +580,7 @@ LOG_LEVEL=verbose
 ### Getting Help
 
 1. Check [Troubleshooting docs](docs/TROUBLESHOOTING.md)
-2. Search [GitHub Issues](https://github.com/yourusername/ai-monitor/issues)
+2. Search [GitHub Issues](https://github.com/jaiswal-sarthak/ai-monitor/issues)
 3. Create a new issue with:
    - Error message
    - Steps to reproduce
@@ -655,9 +655,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📮 Contact
 
 - **Live App**: [https://scrape-sense-one.vercel.app](https://scrape-sense-one.vercel.app)
-- **GitHub**: [@yourusername](https://github.com/yourusername)
-- **Email**: your.email@example.com
-- **Twitter**: [@yourhandle](https://twitter.com/yourhandle)
+- **GitHub**: [@jaiswal-sarthak](https://github.com/jaiswal-sarthak)
+- **Email**: jsarthak135@gmail.com
 
 ---
 
@@ -687,6 +686,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Made with ❤️ using Next.js, AI, and Playwright
 
-[Report Bug](https://github.com/yourusername/ai-monitor/issues) · [Request Feature](https://github.com/yourusername/ai-monitor/issues) · [Documentation](https://github.com/yourusername/ai-monitor/wiki)
+[Report Bug](https://github.com/jaiswal-sarthak/ai-monitor/issues) · [Request Feature](https://github.com/jaiswal-sarthak/ai-monitor/issues) · [Documentation](https://github.com/jaiswal-sarthak/ai-monitor/wiki)
 
 </div>
