@@ -1,0 +1,26 @@
+{
+    "name": "scrapsense-extension",
+    "version": "1.0.0",
+    "description": "ScrapeSense Chrome Extension - Smart Web Scraper",
+    "scripts": {
+        "build": "webpack --mode production",
+        "dev": "webpack --mode development --watch",
+        "clean": "rimraf dist"
+    },
+    "dependencies": {
+        "papaparse": "^5.4.1",
+        "xlsx": "^0.18.5"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.254",
+        "@types/papaparse": "^5.3.14",
+        "copy-webpack-plugin": "^11.0.0",
+        "css-loader": "^6.8.1",
+        "rimraf": "^5.0.5",
+        "style-loader": "^3.3.3",
+        "ts-loader": "^9.5.1",
+        "typescript": "^5.3.3",
+        "webpack": "^5.89.0",
+        "webpack-cli": "^5.1.4"
+    }
+}

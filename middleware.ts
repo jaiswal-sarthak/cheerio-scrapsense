@@ -1,34 +1,33 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { withAuth } from "next-auth/middleware";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export default withAuth({
-  callbacks: {
-    authorized: ({ req, token }) => {
-      // Allow if a JWT token is present (JWT strategy)
-      if (token) return true;
+export function middleware(request: NextRequest) {
+  // Handle CORS for extension API routes
+  if (request.nextUrl.pathname.startsWith('/api/extension')) {
+    // Handle preflight requests
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
+    }
 
-      // If using database sessions, NextAuth sets a session cookie.
-      // Check for the common cookie names used by NextAuth and return true if present.
-      try {
-        const cookies = (req as any)?.cookies;
-        if (!cookies) return false;
+    // Add CORS headers to actual requests
+    const response = NextResponse.next();
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-        // NextRequest.cookies.get is available in edge runtime
-        const sessionCookie =
-          (typeof cookies.get === "function" && (cookies.get("next-auth.session-token") || cookies.get("__Secure-next-auth.session-token"))) ||
-          // fallback: some runtimes expose cookies as a plain object
-          cookies["next-auth.session-token"] ||
-          cookies["__Secure-next-auth.session-token"];
+    return response;
+  }
 
-        return Boolean(sessionCookie);
-      } catch {
-        return false;
-      }
-    },
-  },
-});
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/tasks/:path*", "/api/notifications/:path*"],
+  matcher: '/api/extension/:path*',
 };
-

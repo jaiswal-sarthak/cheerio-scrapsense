@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrapeSense</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="url(#gradient)" />
+                        <path d="M16 8L24 16L16 24L8 16L16 8Z" fill="white" />
+                        <defs>
+                            <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                                <stop offset="0%" stop-color="#3b82f6" />
+                                <stop offset="100%" stop-color="#8b5cf6" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1>ScrapeSense</h1>
+                </div>
+                <p class="tagline">Smart Web Scraper</p>
+            </div>
+
+            <form id="login-form" class="form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-text">Sign In</span>
+                    <span class="btn-loader" style="display: none;">
+                        <span class="spinner"></span>
+                    </span>
+                </button>
+                <div id="login-error" class="error-message" style="display: none;"></div>
+            </form>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboard-screen" class="screen" style="display: none;">
+            <div class="header">
+                <div class="user-info">
+                    <div class="avatar" id="user-avatar">U</div>
+                    <div>
+                        <div class="user-name" id="user-name">User</div>
+                        <div class="user-email" id="user-email">user@email.com</div>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn-icon" title="Logout">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 11-2 0V4H5v12h10v-2a1 1 0 112 0v3a1 1 0 01-1 1H4a1 1 0 01-1-1V3z" />
+                        <path
+                            d="M13 10a1 1 0 011-1h3.586l-1.293-1.293a1 1 0 011.414-1.414l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L17.586 11H14a1 1 0 01-1-1z" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" data-tab="scrape">Scrape</button>
+                <button class="tab" data-tab="data">Data</button>
+                <button class="tab" data-tab="settings">Settings</button>
+            </div>
+
+            <!-- Scrape Tab -->
+            <div id="scrape-tab" class="tab-content active">
+                <div class="action-card">
+                    <h3>Extract Data</h3>
+                    <p>Click elements on the page to select data fields</p>
+                    <button id="start-scraping-btn" class="btn btn-primary btn-large">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path
+                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                        </svg>
+                        Start Selecting
+                    </button>
+                </div>
+
+                <div id="selection-info" class="info-card" style="display: none;">
+                    <div class="info-header">
+                        <h4>Selected Fields</h4>
+                        <span id="field-count" class="badge">0</span>
+                    </div>
+                    <div id="fields-list" class="fields-list"></div>
+                    <div class="button-group">
+                        <button id="extract-btn" class="btn btn-success">Extract Data</button>
+                        <button id="clear-selection-btn" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <div id="pagination-card" class="action-card" style="display: none;">
+                    <h4>Multi-Page Scraping</h4>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enable-pagination">
+                            Enable auto-pagination
+                        </label>
+                    </div>
+                    <div id="pagination-options" style="display: none;">
+                        <div class="form-group">
+                            <label for="max-pages">Max pages</label>
+                            <input type="number" id="max-pages" value="5" min="1" max="50">
+                        </div>
+                        <button id="select-next-btn" class="btn btn-secondary">Select Next Button</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Tab -->
+            <div id="data-tab" class="tab-content" style="display: none;">
+                <div id="no-data" class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                        <circle cx="32" cy="32" r="32" fill="#f3f4f6" />
+                        <path d="M32 20v24M20 32h24" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <p>No data yet</p>
+                    <p class="text-muted">Start scraping to see data here</p>
+                </div>
+
+                <div id="data-view" style="display: none;">
+                    <div class="data-header">
+                        <h3>Scraped Data</h3>
+                        <span id="data-count" class="badge">0 items</span>
+                    </div>
+                    <div id="data-table-container" class="table-container"></div>
+
+                    <div class="export-section">
+                        <h4>Export Options</h4>
+                        <div class="export-grid">
+                            <button class="export-btn" data-format="csv">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+                                </svg>
+                                CSV
+                            </button>
+                            <button class="export-btn" data-format="xlsx">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+                                </svg>
+                                Excel
+                            </button>
+                            <button class="export-btn" data-format="json">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+                                </svg>
+                                JSON
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="send-email-check">
+                                Send to Email
+                            </label>
+                            <input type="email" id="export-email" placeholder="your@email.com" style="display: none;">
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="send-telegram-check">
+                                Send to Telegram
+                            </label>
+                            <input type="text" id="export-telegram" placeholder="Telegram Chat ID"
+                                style="display: none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content" style="display: none;">
+                <div class="settings-section">
+                    <h3>Notification Settings</h3>
+
+                    <!DOCTYPE html>
+                    <html lang="en">
+
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>ScrapeSense</title>
+                        <link rel="stylesheet" href="popup.css">
+                    </head>
+
+                    <body>
+                        <div id="app">
+                            <!-- Login Screen -->
+                            <div id="login-screen" class="screen">
+                                <div class="header">
+                                    <div class="logo">
+                                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                            <rect width="32" height="32" rx="8" fill="url(#gradient)" />
+                                            <path d="M16 8L24 16L16 24L8 16L16 8Z" fill="white" />
+                                            <defs>
+                                                <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                                                    <stop offset="0%" stop-color="#3b82f6" />
+                                                    <stop offset="100%" stop-color="#8b5cf6" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                        <h1>ScrapeSense</h1>
+                                    </div>
+                                    <p class="tagline">Smart Web Scraper</p>
+                                </div>
+
+                                <form id="login-form" class="form">
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" id="email" placeholder="your@email.com" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password">Password</label>
+                                        <input type="password" id="password" placeholder="••••••••" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <span class="btn-text">Sign In</span>
+                                        <span class="btn-loader" style="display: none;">
+                                            <span class="spinner"></span>
+                                        </span>
+                                    </button>
+                                    <div id="login-error" class="error-message" style="display: none;"></div>
+                                </form>
+                            </div>
+
+                            <!-- Main Dashboard -->
+                            <div id="dashboard-screen" class="screen" style="display: none;">
+                                <div class="header">
+                                    <div class="user-info">
+                                        <div class="avatar" id="user-avatar">U</div>
+                                        <div>
+                                            <div class="user-name" id="user-name">User</div>
+                                            <div class="user-email" id="user-email">user@email.com</div>
+                                        </div>
+                                    </div>
+                                    <button id="logout-btn" class="btn-icon" title="Logout">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                            <path
+                                                d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 11-2 0V4H5v12h10v-2a1 1 0 112 0v3a1 1 0 01-1 1H4a1 1 0 01-1-1V3z" />
+                                            <path
+                                                d="M13 10a1 1 0 011-1h3.586l-1.293-1.293a1 1 0 011.414-1.414l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L17.586 11H14a1 1 0 01-1-1z" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <!-- Tabs -->
+                                <div class="tabs">
+                                    <button class="tab active" data-tab="scrape">Scrape</button>
+                                    <button class="tab" data-tab="data">Data</button>
+                                    <button class="tab" data-tab="settings">Settings</button>
+                                </div>
+
+                                <!-- Scrape Tab -->
+                                <div id="scrape-tab" class="tab-content active">
+                                    <div class="action-card">
+                                        <h3>Extract Data</h3>
+                                        <p>Click elements on the page to select data fields</p>
+                                        <button id="start-scraping-btn" class="btn btn-primary btn-large">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path
+                                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                                            </svg>
+                                            Start Selecting
+                                        </button>
+                                    </div>
+
+                                    <div id="selection-info" class="info-card" style="display: none;">
+                                        <div class="info-header">
+                                            <h4>Selected Fields</h4>
+                                            <span id="field-count" class="badge">0</span>
+                                        </div>
+                                        <div id="fields-list" class="fields-list"></div>
+                                        <div class="button-group">
+                                            <button id="extract-btn" class="btn btn-success">Extract Data</button>
+                                            <button id="clear-selection-btn" class="btn btn-secondary">Clear</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="pagination-card" class="action-card" style="display: none;">
+                                        <h4>Multi-Page Scraping</h4>
+                                        <div class="form-group">
+                                            <label>
+                                                <input type="checkbox" id="enable-pagination">
+                                                Enable auto-pagination
+                                            </label>
+                                        </div>
+                                        <div id="pagination-options" style="display: none;">
+                                            <div class="form-group">
+                                                <label for="max-pages">Max pages</label>
+                                                <input type="number" id="max-pages" value="5" min="1" max="50">
+                                            </div>
+                                            <button id="select-next-btn" class="btn btn-secondary">Select Next
+                                                Button</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Data Tab -->
+                                <div id="data-tab" class="tab-content" style="display: none;">
+                                    <div id="no-data" class="empty-state">
+                                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                                            <circle cx="32" cy="32" r="32" fill="#f3f4f6" />
+                                            <path d="M32 20v24M20 32h24" stroke="#9ca3af" stroke-width="2"
+                                                stroke-linecap="round" />
+                                        </svg>
+                                        <p>No data yet</p>
+                                        <p class="text-muted">Start scraping to see data here</p>
+                                    </div>
+
+                                    <div id="data-view" style="display: none;">
+                                        <div class="data-header">
+                                            <h3>Scraped Data</h3>
+                                            <span id="data-count" class="badge">0 items</span>
+                                        </div>
+                                        <div id="data-table-container" class="table-container"></div>
+
+                                        <div class="export-section">
+                                            <h4>Export Options</h4>
+                                            <div class="export-grid">
+                                                <button class="export-btn" data-format="csv">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path
+                                                            d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+                                                    </svg>
+                                                    CSV
+                                                </button>
+                                                <button class="export-btn" data-format="xlsx">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path
+                                                            d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+                                                    </svg>
+                                                    Excel
+                                                </button>
+                                                <button class="export-btn" data-format="json">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path
+                                                            d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" />
+                                                    </svg>
+                                                    JSON
+                                                </button>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>
+                                                    <input type="checkbox" id="send-email-check">
+                                                    Send to Email
+                                                </label>
+                                                <input type="email" id="export-email" placeholder="your@email.com"
+                                                    style="display: none;">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>
+                                                    <input type="checkbox" id="send-telegram-check">
+                                                    Send to Telegram
+                                                </label>
+                                                <input type="text" id="export-telegram" placeholder="Telegram Chat ID"
+                                                    style="display: none;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Settings Tab -->
+                                <div id="settings-tab" class="tab-content" style="display: none;">
+                                    <div class="settings-section">
+                                        <h3>Notification Settings</h3>
+
+                                        <div class="form-group">
+                                            <label for="settings-email">Email Address</label>
+                                            <input type="email" id="settings-email" placeholder="your@email.com">
+                                            <p class="help-text">Receive scraped data via email</p>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="settings-telegram">Telegram Chat ID</label>
+                                            <input type="text" id="settings-telegram" placeholder="123456789">
+                                            <p class="help-text">Get your Chat ID from @userinfobot</p>
+                                        </div>
+
+                                        <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
+                                    </div>
+
+                                    <div class="settings-section">
+                                        <h3>About</h3>
+                                        <p class="text-muted">ScrapeSense v1.0.0</p>
+                                        <p class="text-muted">Smart web scraping extension</p>
+                                        <a href="https://cheerio-scrapsense.onrender.com" target="_blank" class="link">
+                                            Open Dashboard →
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script src="popup.js"></script>
+                    </body>
+
+                    </html>

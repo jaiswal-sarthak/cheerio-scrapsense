@@ -1,0 +1,70 @@
+{
+    "manifest_version": 3,
+    "name": "ScrapeSense - Smart Web Scraper",
+    "version": "1.0.0",
+    "description": "Extract data from any website with visual point-and-click selection. Export to CSV, XLSX, JSON, Email, and Telegram instantly.",
+    "icons": {
+        "16": "icons/icon-16.png",
+        "48": "icons/icon-48.png",
+        "128": "icons/icon-128.png"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon-16.png",
+            "48": "icons/icon-48.png",
+            "128": "icons/icon-128.png"
+        },
+        "default_title": "ScrapeSense"
+    },
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting",
+        "tabs",
+        "identity"
+    ],
+    "host_permissions": [
+        "http://localhost:3000/*",
+        "https://cheerio-scrapsense.vercel.app/*",
+        "https://cheerio-scrapsense.onrender.com/*",
+        "<all_urls>"
+    ],
+    "oauth2": {
+        "client_id": "900125539381-3igra40uoi0e18ui8orb7mg2ntituog6.apps.googleusercontent.com",
+        "scopes": [
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile"
+        ]
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "content.css"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "icons/*"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+}

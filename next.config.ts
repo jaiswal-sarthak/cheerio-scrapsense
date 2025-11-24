@@ -7,9 +7,6 @@ const nextConfig = {
       allowedOrigins: ["*"],
     },
   },
-  turbopack: {
-    root: __dirname,
-  },
 } as NextConfig;
 
 export default nextConfig;

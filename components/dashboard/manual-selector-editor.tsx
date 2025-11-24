@@ -56,8 +56,9 @@ interface ManualSelectorEditorProps {
     url: string;
     initialSchema?: {
         selectors: SelectorField[];
+        paginationSelector?: string;
     };
-    onSave: (schema: { selectors: SelectorField[] }) => void;
+    onSave: (schema: { selectors: SelectorField[]; paginationSelector?: string }) => void;
     onCancel?: () => void;
 }
 
@@ -74,6 +75,9 @@ export function ManualSelectorEditor({
             { field: "description", selector: "" },
             { field: "url", selector: "", attribute: "href" },
         ]
+    );
+    const [paginationSelector, setPaginationSelector] = useState<string>(
+        initialSchema?.paginationSelector || ""
     );
 
     const [isValidating, setIsValidating] = useState(false);
@@ -170,7 +174,7 @@ export function ManualSelectorEditor({
     };
 
     const handleSave = () => {
-        onSave({ selectors });
+        onSave({ selectors, paginationSelector });
     };
 
     const copySchema = () => {
@@ -282,21 +286,6 @@ export function ManualSelectorEditor({
                                         onClick={() => removeSelector(index)}
                                         className="text-red-600"
                                     >
-                                        ✕
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-
-                    <Button variant="outline" onClick={addSelector} className="w-full">
-                        + Add Field
-                    </Button>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3 pt-4">
-                        <Button onClick={handleValidate} disabled={isValidating} className="flex-1">
-                            {isValidating ? (
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                             ) : (
                                 <Eye className="h-4 w-4 mr-2" />
@@ -312,52 +301,52 @@ export function ManualSelectorEditor({
                             Save & Use Schema
                         </Button>
                         {onCancel && (
-                            <Button variant="ghost" onClick={onCancel}>
-                                Cancel
-                            </Button>
-                        )}
-                    </div>
-
-                    {/* Validation Message */}
-                    {validationResults && (
-                        <div
-                            className={`p-4 rounded-lg ${validationResults.success
-                                ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
-                                : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800"
-                                }`}
-                        >
-                            <div className="flex items-start gap-2">
-                                {validationResults.success ? (
-                                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
-                                ) : (
-                                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                                    <Button variant="ghost" onClick={onCancel}>
+                                        Cancel
+                                    </Button>
                                 )}
-                                <div>
-                                    <p className="font-medium text-sm">{validationResults.message}</p>
-                                    {validationResults.results?.some((r) => r.samples?.length > 0) && (
-                                        <div className="mt-2 space-y-2">
-                                            <p className="text-xs font-medium">Sample Data:</p>
-                                            {validationResults.results.map((r, i) => (
-                                                r.samples?.length > 0 && (
-                                                    <div key={i} className="text-xs">
-                                                        <span className="font-mono font-semibold">{r.field}:</span>
-                                                        <ul className="ml-4 mt-1 space-y-1">
-                                                            {r.samples.map((sample, j) => (
-                                                                <li key={j} className="text-muted-foreground">
-                                                                    • {sample}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                )
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
                             </div>
-                        </div>
-                    )}
-                </CardContent>
+
+                            {/* Validation Message */}
+                            {validationResults && (
+                                <div
+                                    className={`p-4 rounded-lg ${validationResults.success
+                                        ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+                                        : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800"
+                                        }`}
+                                >
+                                    <div className="flex items-start gap-2">
+                                        {validationResults.success ? (
+                                            <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                                        ) : (
+                                            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                                        )}
+                                        <div>
+                                            <p className="font-medium text-sm">{validationResults.message}</p>
+                                            {validationResults.results?.some((r) => r.samples?.length > 0) && (
+                                                <div className="mt-2 space-y-2">
+                                                    <p className="text-xs font-medium">Sample Data:</p>
+                                                    {validationResults.results.map((r, i) => (
+                                                        r.samples?.length > 0 && (
+                                                            <div key={i} className="text-xs">
+                                                                <span className="font-mono font-semibold">{r.field}:</span>
+                                                                <ul className="ml-4 mt-1 space-y-1">
+                                                                    {r.samples.map((sample, j) => (
+                                                                        <li key={j} className="text-muted-foreground">
+                                                                            • {sample}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
             </Card>
 
             {/* AI Suggestions Panel */}
