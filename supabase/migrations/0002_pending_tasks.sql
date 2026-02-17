@@ -60,5 +60,8 @@ begin
 end;
 $$;
 
+-- Grant API roles access (same as 0003 for other public tables)
+GRANT ALL ON public.pending_tasks TO anon, service_role, authenticated;
+
 -- Optional: Create a cron job to run cleanup (if using pg_cron extension)
 -- SELECT cron.schedule('cleanup-pending-tasks', '0 * * * *', 'SELECT cleanup_expired_pending_tasks()');

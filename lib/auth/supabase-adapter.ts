@@ -53,14 +53,20 @@ export const createSupabasePublicAdapter = ({
       return data ? mapUserFromDb(data) : null;
     },
     async getUserByAccount({ providerAccountId, provider }) {
-      const { data, error } = await supabase
+      const { data: account, error: accountError } = await supabase
         .from("accounts")
-        .select("*, users(*)")
+        .select("user_id")
         .match({ provider, provider_account_id: providerAccountId })
         .maybeSingle();
-      if (error) throw error;
-      if (!data || !data.users) return null;
-      return mapUserFromDb(data.users);
+      if (accountError) throw accountError;
+      if (!account?.user_id) return null;
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", account.user_id)
+        .maybeSingle();
+      if (userError) throw userError;
+      return user ? mapUserFromDb(user) : null;
     },
     async updateUser(user) {
       const { data, error } = await supabase
@@ -97,16 +103,23 @@ export const createSupabasePublicAdapter = ({
       return mapSessionFromDb(data);
     },
     async getSessionAndUser(sessionToken) {
-      const { data, error } = await supabase
+      const { data: sessionRow, error: sessionError } = await supabase
         .from("sessions")
-        .select("*, users(*)")
+        .select("*")
         .eq("session_token", sessionToken)
         .maybeSingle();
-      if (error) throw error;
-      if (!data || !data.users) return null;
+      if (sessionError) throw sessionError;
+      if (!sessionRow?.user_id) return null;
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", sessionRow.user_id)
+        .maybeSingle();
+      if (userError) throw userError;
+      if (!user) return null;
       return {
-        user: mapUserFromDb(data.users),
-        session: mapSessionFromDb(data),
+        user: mapUserFromDb(user),
+        session: mapSessionFromDb(sessionRow),
       };
     },
     async updateSession(session) {

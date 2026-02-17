@@ -100,6 +100,9 @@ const sendMagicLinkEmail = async ({
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
+  // @ts-expect-error trustHost exists at runtime for Vercel/proxy; types may not include it
+  trustHost: true,
   session: {
     strategy: "database",
   },
