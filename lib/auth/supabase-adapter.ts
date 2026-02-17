@@ -5,7 +5,7 @@ import type {
   AdapterSession,
   AdapterUser,
   VerificationToken,
-} from "@auth/core/adapters";
+} from "next-auth/adapters";
 
 interface SupabaseAdapterOptions {
   url: string;
